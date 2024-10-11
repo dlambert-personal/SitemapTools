@@ -131,9 +131,10 @@ public class SitemapQuery
 		return result;
 	}
 
-	private static bool IsCompressedStream(string contentType) =>
+	private static bool IsCompressedStream(string contentType, ICollection<string> contentEncoding) =>
 		contentType.Equals("application/x-gzip", StringComparison.InvariantCultureIgnoreCase) ||
-		contentType.Equals("application/octet-stream", StringComparison.InvariantCultureIgnoreCase);
+		contentType.Equals("application/octet-stream", StringComparison.InvariantCultureIgnoreCase) ||
+		contentEncoding.Contains("x-gzip");
 
 	/// <summary>
 	/// Retrieves a sitemap at the given URI, converting it to a <see cref="SitemapFile"/>.
@@ -149,9 +150,10 @@ public class SitemapQuery
 			if (response.IsSuccessStatusCode)
 			{
 				var contentType = response.Content.Headers.ContentType.MediaType;
+				var contentEncoding = response.Content.Headers.ContentEncoding;
 				var requiresManualDecompression = false;
-				
-				if (IsCompressedStream(contentType))
+
+				if (IsCompressedStream(contentType, contentEncoding))
 				{
 					requiresManualDecompression = true;
 					var baseFileName = Path.GetFileNameWithoutExtension(sitemapUrl.AbsolutePath);
